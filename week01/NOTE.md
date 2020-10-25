@@ -478,9 +478,425 @@ private:
 
 
 
-#### 622.设计循环队列
+#### 622.设计循环队列  &  641. 设计双向循环队列
 
 > **循环队列**，故名思义，就是**头尾相接**的数组/链表等**基础数据结构** 为基础实现的队列结构
+
+
+
+##### 链表方法
+
+不如数组的下标可以利用**复杂的数关系**那样的 tricky
+
+链表法在实现时，是比较容易思考的，因为链表的基本操作完全是是线性的
+
+以下是我个人思考链表题时的过程：(分函数考虑)
+
+```flow
+st=>start: 开始
+generic=>operation: 考虑一般情况
+boundary=>operation: 考虑边界情况
+pianting=>operation: 画图
+pa=>operation: 再画图
+code=>operation: 写代码
+st->generic->pianting->boundary(right)->pa(right)->code(right)->generic
+```
+
+##### 细节：
+
+ 1. 注意边界的检查，即插入第一个元素时，控制首尾指针的行为
+
+ 2. 插入顺序：
+
+    ```cpp
+    newnode ->next = temp;
+    rear -> next = head;           
+    ```
+##### 源码：
+
+```cpp
+struct LinkedNode {
+    int val;
+    LinkedNode *next;
+
+    LinkedNode(int val){
+        val = val;
+        next = nullptr;
+    }
+};
+
+class MyCircularQueue {
+
+    // This implementation is based on Linked List
+private:
+    int size,capacity;
+    ListNode* head,*rear;
+    
+public:
+    /** Initialize your data structure here. Set the size of the queue to be k. */
+    MyCircularQueue(int k) {
+        // the head as a dummy node
+        size = 0;
+        head =nullptr;
+        
+        rear = nullptr;
+        
+        capacity = k; 
+    }
+    
+    /** Insert an element into the circular queue. Return true if the operation is successful. */
+    bool enQueue(int value) {
+        if(!isFull()) {
+
+                ListNode* newnode =new ListNode(value), 
+                *temp = head;
+
+            		if(isEmpty()) {
+                    rear = newnode;
+                }
+
+                head = newnode;
+                newnode ->next = temp;
+                rear -> next = head;
+                
+                size++;
+
+                return true;
+        }
+        
+        return false;
+
+    }
+    
+    /** Delete an element from the circular queue. Return true if the operation is successful. */
+    bool deQueue() {
+        if(!isEmpty()) {
+            ListNode* temp = head;
+          
+           while(temp->next !=rear) {
+               temp= temp->next;
+           }
+
+            //kill
+            temp ->next = head;
+            rear = temp;
+
+            size--;
+            return true;
+
+        }
+        return  false;
+        
+    }
+    
+    /** Get the front item from the queue. */
+    int Front() {
+       return isEmpty()? -1 : this->rear->val;
+    }
+    
+    /** Get the last item from the queue. */
+    int Rear() {
+        return isEmpty()? -1 : this->head->val;
+    }
+    
+    /** Checks whether the circular queue is empty or not. */
+    bool isEmpty() {
+        return size == 0;
+    }
+    
+    /** Checks whether the circular queue is full or not. */
+    bool isFull() {
+        return size == capacity;
+    }
+};
+
+
+```
+
+
+
+#### 用链表设计Deque
+
+
+
+- 第一次想着：是不是把上面那道题的代码copy过来就行了，然而我过于天真，有以下几点问题：
+
+  - 插入第一个元素：要使得**头尾指针同时指向**一个元素。
+
+   ```cpp
+  if(isEmpty()) {
+    	head = newnode;
+      rear = newnode;            
+  }
+   ```
+
+  - 删除第一个元素：要恢复头尾指针到空指针：
+
+  ```cpp
+   if(rear == head) {
+      rear = nullptr;
+      head = nullptr;
+      size--;
+      return true;
+     }
+  ```
+
+  - 临时指针到判空（前后插入都要，这里只给出前插入）
+
+  ```cpp
+  bool insertFront(int value) {
+  	if(!isFull()) {
+  
+                  LinkedNode* newnode = new LinkedNode(value),
+                  *temp = head;
+  
+                  if(isEmpty()) {
+                      head = newnode;
+                      rear = newnode;
+                  }
+  
+  
+                  head = newnode;
+     							// 必须判空，不然前插入后插入会使得循环链表断开
+                  if(temp) newnode ->next = temp;
+                  rear -> next = head;
+                  
+                  size++;
+  
+                  return true;
+          }
+  }
+  ```
+
+  
+
+##### 源码
+
+```cpp
+struct LinkedNode {
+    int val;
+    LinkedNode *next;
+   
+
+    LinkedNode(int val){
+        this->val = val;
+        next = nullptr;
+       
+    }
+};
+
+class MyCircularDeque {
+private:
+    LinkedNode* head,*rear;
+    int size,capacity;
+
+public:
+    /** Initialize your data structure here. Set the size of the deque to be k. */
+
+    MyCircularDeque(int k) {
+       
+        head = nullptr;
+        rear = nullptr;
+        size = 0;
+        capacity = k;
+    }
+    
+    /** Adds an item at the front of Deque. Return true if the operation is successful. */
+    bool insertFront(int value) {
+        
+        if(!isFull()) {
+
+                LinkedNode* newnode = new LinkedNode(value),
+                *temp = head;
+
+                if(isEmpty()) {
+                    head = newnode;
+                    rear = newnode;
+                }
+
+
+                head = newnode;
+          			// 必须判空，不然前插入后插入会使得循环链表断开
+                if(temp) newnode ->next = temp;
+                rear -> next = head;
+                
+                size++;
+
+                return true;
+        }
+        
+        return false;
+    }
+    
+    /** Adds an item at the rear of Deque. Return true if the operation is successful. */
+    bool insertLast(int value) {
+              if(!isFull()) {
+                
+                LinkedNode* newnode =new LinkedNode(value),
+                *temp = rear;
+
+                if(isEmpty()) {
+                    head = newnode;
+                    rear = newnode;
+                    
+                }
+
+                rear = newnode;
+                // 必须判空，不然前插入后插入会使得循环链表断开
+                if(temp) temp->next = rear;
+                rear->next = head ;
+                
+
+                size++;
+                return true;
+
+        }
+        
+        return false;
+    }
+    
+    /** Deletes an item from the front of Deque. Return true if the operation is successful. */
+    bool deleteFront() {
+             if(!isEmpty()) {
+                 
+                 if(rear == head) {
+                    rear = nullptr;
+                    head = nullptr;
+                     size--;
+                     return true;
+                 }
+                 
+                 head = head -> next;
+                 rear -> next = head;
+                 size--;
+                 return true;
+                
+        }
+        return  false;
+    }
+    
+    /** Deletes an item from the rear of Deque. Return true if the operation is successful. */
+    bool deleteLast() {
+
+           if(!isEmpty()) {
+               
+            LinkedNode* temp = head;
+           // maintain_rear(rear);
+               if(rear == head) {
+                  rear = nullptr;
+                  head = nullptr;
+                   size--;
+                   return true;
+               }
+               
+           while(temp->next != rear) {
+               temp = temp->next;
+           }
+
+            //kill
+            temp ->next = head;
+            rear = temp;
+
+            size--;
+            return true;
+
+        }
+        return  false;
+        
+    }
+    
+    /** Get the front item from the deque. */
+    int getFront() {
+        return isEmpty()?-1:head->val;
+    }
+    
+    /** Get the last item from the deque. */
+    int getRear() {
+        return isEmpty()?-1:rear->val;
+    }
+    
+    /** Checks whether the circular deque is empty or not. */
+    bool isEmpty() {
+        return  size == 0;
+    }
+    
+    /** Checks whether the circular deque is full or not. */
+    bool isFull() {
+        return  size == capacity ;
+
+    }
+
+};
+```
+
+#### 数组方法（只给出单向循环队列）
+
+##### 图解（TODO）
+
+##### 源码
+
+```cpp
+class MyCircularQueue {
+
+    /*
+        This is the implementation based on array
+
+    */
+private:
+    int size,head, rear;
+    int * queue;
+public:
+    /** Initialize your data structure here. Set the size of the queue to be k. */
+    
+    MyCircularQueue(int k) :size(k+1),head(0),rear(0){
+        // ***********detail***********
+        queue =new  int[k+1];
+    }
+    
+    /** Insert an element into the circular queue. Return true if the operation is successful. */
+    bool enQueue(int value) {
+        if(!isFull()){
+            queue[rear]=value;
+            rear = (rear+1) % size;
+            return true;
+        }
+        return false;
+    }
+    
+    /** Delete an element from the circular queue. Return true if the operation is successful. */
+    bool deQueue() {
+        if(!isEmpty()) {
+            head  = (head + 1) % size;
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /** Get the front item from the queue. */
+    int Front() {
+        return isEmpty()?-1:queue[head];
+    }
+    
+    /** Get the last item from the queue. */
+    int Rear() {
+
+        // ***********detail***********
+        return isEmpty()?-1:queue[(rear-1+size)%size];
+    }
+    
+    /** Checks whether the circular queue is empty or not. */
+    bool isEmpty() {
+        return rear == head;
+    }
+    
+    /** Checks whether the circular queue is full or not. */
+    bool isFull() {
+        // ***********detail***********
+        return (rear+1)%size==head;
+    }
+};
+```
 
 
 

@@ -55,7 +55,6 @@ public:
                     rear = newnode;
                 }
 
-
                 head = newnode;
                 newnode ->next = temp;
                 rear -> next = head;
@@ -73,7 +72,7 @@ public:
     bool deQueue() {
         if(!isEmpty()) {
             ListNode* temp = head;
-           // maintain_rear(rear);
+          
            while(temp->next !=rear) {
                temp= temp->next;
            }
