@@ -234,6 +234,259 @@ APIs：
                   > 当Integer.MAX_VALUE再加后，将会变为一个负数（我们可以通过这个特性判断overflow）。（原理见**计算机组成原理**）
 
             5. peek() 查看栈顶元素
-
                
+### 例题
+#### 20.有效的括号
+
+> 检测一段字串序列中的有效括号
+
+##### 栈方法（C++）
+
+1. 创建一个栈结构，
+
+   1. 若是左括号，则入栈
+   2. 若是右括号，则检测栈顶是否是相应左括号
+
+2. 细节：
+
+   1. 检测输入长度，若是0，直接返回true;若长度为奇数，返回false
+
+      ```cpp
+       if(!s.length()) return true;
+       if(s.length%2=1) return false;
+      ```
+   ```
+   
+   ```
+   
+2. 建立散列表（方便检测）
+   
+      ```cpp
+        unordered_map<char, char> pairs = {
+                  {']','['},
+                  {'}','{'},
+                  {')','('}    
+              };
+	```
+	
+	3. 检测是否是右括号
+	
+	   ```cpp
+	    if(pairs.count(c))
+	   ```
+	   
+	4. 别忘了检测完出栈哦
+	   
+	5. 最后检验栈是否为空
+	
+	   ```cpp
+	   return stk.empty();
+	   ```
+##### 源码（[map方法](https://leetcode-cn.com/problems/valid-parentheses/solution/you-xiao-de-gua-hao-by-leetcode-solution/)）
+
+```cpp
+class Solution {
+public:
+    bool isValid(string s) {
+
+        if(!s.length()) {
+            return true;
+        }
+        
+        unordered_map<char, char> pairs = {
+            {']','['},
+            {'}','{'},
+            {')','('}
+            
+        };
+
+        stack<char> stk;
+
+
+        for(char c: s) {
+            
+            if(pairs.count(c)) {
+                
+                if(stk.empty() || stk.top()!=pairs[c]) {
+                    return false;
+                }
+                stk.pop();
+
+            }
+            else {
+                stk.push(c);
+            }
+        }
+        return stk.empty();
+
+    }
+};
+```
+
+##### 源码（[switch方法](https://leetcode.com/problems/valid-parentheses/discuss/9252/2ms-C%2B%2B-sloution)）
+
+```cpp
+    class Solution {
+    public:
+        bool isValid(string s) {
+
+            if(s.empty()) return true;
+            if(s.size()%2==1) return false;
+            
+            stack<char> paren;
+            for (char& c : s) {
+                switch (c) {
+                    case '(': 
+                    case '{': 
+                    case '[': paren.push(c); break;
+                    case ')': if (paren.empty() || paren.top()!='(') return false; else paren.pop(); break;
+                    case '}': if (paren.empty() || paren.top()!='{') return false; else paren.pop(); break;
+                    case ']': if (paren.empty() || paren.top()!='[') return false; else paren.pop(); break;
+                    default: ; // pass
+                }
+            }
+            return paren.empty() ;
+        }
+    };
+```
+
+
+
+
+#### 155.最小栈
+
+> 设计一个可以在 $O(1)$ 时间复杂度内找到栈内**最小元素**的栈结构
+
+##### 双栈方法
+
+- 再开一个栈，名为最小栈，与数据栈并行操作，不同：
+
+1. push时，最小栈只压入当前最小元素
+2. 两栈一起pop。
+3. getMin直接去最小栈查询。
+
+- 细节
+
+  - 官方题解很憨，最小栈不管什么情况都压入，这样会多出很多重复最小元素，**浪费空间**
+
+    ```cpp
+    min_stack.push(min(min_stack.top(), x));
+    ```
+
+    
+
+  - 想**节省空间**，在push时做一个判断，利用getMin方法与待入元素做比较，节省**最小栈**的空间
+
+    ```cpp
+     void push(int x) {
+            data_stack.push(x);
+            if(min_stack.empty() || x<=getMin())
+                 min_stack.push(x); 
+        }
+    ```
+
+    
+
+  - 最小栈pop时判断，不pop
+
+    ```cpp
+    void pop() {
+            if(data_stack.top()==getMin())
+                min_stack.pop();
+            data_stack.pop();
+        }
+    ```
+
+##### 双栈法源码
+
+```cpp
+class MinStack {
+public:
+    /** initialize your data structure here. */
+
+    // Two Stacks Method 
+    stack<int> data_stack;
+    stack<int> min_stack;
+
+    MinStack() {
+        min_stack.push(INT_MAX);
+    }
+    
+    void push(int x) {
+        data_stack.push(x);
+        if(min_stack.empty() || x<=getMin())
+             min_stack.push(x); 
+    }
+    
+    void pop() {
+        
+        if(data_stack.top()==getMin())
+            min_stack.pop();
+        data_stack.pop();
+    }
+    
+    int top() {
+        return data_stack.top();
+    }
+    
+    int getMin() {
+        return min_stack.top();
+    }
+};
+```
+
+##### Pair 法
+
+本方法只用**一个栈**，但是**扩大**存入的元素大小
+
+int ----> { int, min_int }
+
+每个元素的**second值**记录当前最小值
+
+题解来源：[fuxuemingzhu](https://leetcode-cn.com/problems/min-stack/solution/zui-yi-dong-yi-ge-zhan-tong-shi-bao-cun-dang-qian-/)
+
+```cpp
+class MinStack {
+public:
+    /** initialize your data structure here. */
+    MinStack() {
+    }
+    
+    void push(int x) {
+        if (st.size() == 0) {
+            st.push({x, x});
+        } else {
+            st.push({x, min(x, st.top().second)});
+        }
+    }
+    
+    void pop() {
+        st.pop();
+    }
+    
+    int top() {
+        return st.top().first;
+    }
+    
+    int getMin() {
+        return st.top().second;
+    }
+private:
+    stack<pair<int, int>> st;
+};
+```
+
+
+
+
+
+## 参考
+
+1. [Leetcode 官方题解](https://leetcode-cn.com/problems/valid-parentheses/solution/you-xiao-de-gua-hao-by-leetcode-solution/)
+2. [外国老哥的神奇题解](https://leetcode.com/problems/valid-parentheses/discuss/9252/2ms-C%2B%2B-sloution)
+3. [单栈法题解](https://leetcode-cn.com/problems/min-stack/solution/zui-yi-dong-yi-ge-zhan-tong-shi-bao-cun-dang-qian-/)
+
+
+
+
 
