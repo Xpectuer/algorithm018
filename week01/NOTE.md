@@ -833,6 +833,8 @@ public:
 
 ##### 图解（TODO）
 
+
+
 ##### 源码
 
 ```cpp
@@ -850,7 +852,7 @@ public:
     
     MyCircularQueue(int k) :size(k+1),head(0),rear(0){
         // ***********detail***********
-        queue =new  int[k+1];
+        queue = new  int[k+1];
     }
     
     /** Insert an element into the circular queue. Return true if the operation is successful. */
