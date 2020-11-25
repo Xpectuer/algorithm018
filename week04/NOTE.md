@@ -346,5 +346,39 @@ public:
 
 点出这道题的原因在于，这道题的某篇题解对于二分查找的条件做了相对详细的分析，帮助解题者更好地理解二分查找代码中的各种细节。
 
+### 11.14 每日一题
+
+#### [1122. Relative Sort Array](https://leetcode-cn.com/problems/relative-sort-array/)
+
+这道题虽然与本周主题不大有关，但是其计数排序的解法还是相当有趣的，顺便可以预习下几周的课程。
+
+1. 将arr1 的元素计数
+2. 扫描arr2，将计数器的元素倒入新的arr中
+3. 按序倒入剩余的元素
 
 
+
+### 11.16 每日一题
+
+**406.Queue Reconstruction by Height**
+
+其他的复杂解法不想讲，只想讲讲最简洁的[解法](https://leetcode.com/problems/queue-reconstruction-by-height/discuss/89345/Easy-concept-with-PythonC%2B%2BJava-Solution)
+
+1. 将原数组按照 身高（降序），k序数（升序）排列
+
+```cpp
+sort(people.begin(), people.end(), [](const vector<int>& u, const vector<int>& v) {
+            return u[0] > v[0] || (u[0] == v[0] && u[1] < v[1]);
+});
+```
+
+2. 随后按照k序数下标，**插入**到结果数组中
+
+```cpp
+ for (const vector<int>& person: people) {
+     ans.insert(ans.begin() + person[1], person);
+ }
+
+```
+
+![406.按照身高重建队列](/Users/alex/Downloads/406.按照身高重建队列.png)
