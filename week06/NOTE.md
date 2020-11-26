@@ -56,7 +56,7 @@
 
 #### 例题（必会）
 
-1143.  **Longest Common Subsequence** (LCS)
+##### 1143.**Longest Common Subsequence** (LCS) 二维DP
 
 ##### Brute Force
 
@@ -213,4 +213,127 @@ public:
 ```
 
 
+
+##### 198. 打家劫舍 （一维DP）
+
+
+
+这是力扣一维dp的经典题目。
+
+我们知道，dp的核心就是找到dp方程，代码也就呼之欲出了。
+
+由于题目的制约因素是：
+
+> **如果两间相邻的房屋在同一晚上被小偷闯入，系统会自动报警**。
+
+也就是不能同时入侵相邻的房间。
+
+
+
+回到抢房子，先不思考限制条件，
+
+我们最直观的思维：
+
+我们要么抢这间房``num[i]``，要么不抢。
+
+
+
+设``dp[i]``存放打劫到第`i`间房的最好结果
+
+再想不能对相邻的房子下手
+
+我们的是要得到``dp[i]``最好的结果，
+
+那么我们只要知道``dp[i-1]``最好的结果，并决定在第``i``间房**下不下手**
+
+1. 下手，则``dp[i-1]``不下手，说明我们在``i-2``下手，结果就是``dp[i-2] + num[i]``
+
+2. 不下手，则``dp[i-1]``下手，结果就是``dp[i-1]``
+
+   我们直接选择``dp[i]``更大的决定：
+
+   ```pseudocode
+   dp[i] = max(dp[i-2]+num[i],dp[i-1])
+   ```
+
+   也就不难写出代码（这里用go实现）
+
+   ```go
+   func rob(nums []int) int {
+       if nums==nil || len(nums)==0 {
+           return 0
+       }
+       if len(nums)==1 {
+           return nums[0]
+       }
+     // 空间复杂度压缩到O(1)
+       first := nums[0]
+       second := max(nums[0], nums[1])
+   
+       for i:=2;i<len(nums);i++ {
+           first, second = second, max(first + nums[i], second)
+       }
+       return second
+   }
+   // go没有 max(int,int) int 的库函数，我们手动实现一个
+   func max(a int , b int) int {
+       if a>b {
+           return a
+       }
+       return b
+   }
+   ```
+
+   
+
+##### 213. 打家劫舍II 
+
+Leetcode198.的简单变体
+
+这道题把数组设作旋转数组，使得最后一间与第一间房不能同时抢
+
+这个思路我由于缺乏处理旋转排序数组的经验，一开始未曾想到
+
+看了题解确实精妙，便作记录
+
+
+
+方法便是我们取``num[1:]``和``num[:-1]``依葫芦画瓢两段分别DP，取其中最大的即可
+
+```go
+func rob(nums []int) int {
+
+     if nums==nil || len(nums)==0 {
+        return 0
+    }
+    if len(nums)==1 {
+        return nums[0]
+    }
+
+    return max(dp(nums[1:]), dp(nums[:len(nums)-1]));
+}
+func dp(nums []int) int {
+    if nums==nil || len(nums)==0 {
+        return 0
+    }
+    if len(nums)==1 {
+        return nums[0]
+    }
+
+    first := nums[0]
+    second := max(nums[0], nums[1])
+		// 空间复杂度压缩到O(1)
+    for i:=2;i<len(nums);i++ {
+        first, second = second, max(first + nums[i], second)
+    }
+    return second
+}
+// go没有 max(int,int) int 的库函数，我们手动实现一个
+func max(a int , b int) int {
+    if a>b {
+        return a
+    }
+    return b
+}
+```
 
