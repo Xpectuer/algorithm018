@@ -54,6 +54,26 @@
 
 
 
+### 思想武器
+
+1. 打破思维惯性，形成及其思维
+2. 理解复杂逻辑的关键
+3. 职业进阶的要点
+
+
+
+### 5 EZ Steps to DP
+
+1. Define a subproblem
+2. Guess part of solution
+3. relate subproblem solutions
+4. Recurse & Memorize
+5. ~~Solve Original problem~~
+
+(自顶向下，自底向上都要练一下)
+
+状态压缩
+
 #### 例题（必会）
 
 ##### 1143.**Longest Common Subsequence** (LCS) 二维DP
@@ -286,7 +306,7 @@ public:
 
    
 
-##### 213. 打家劫舍II 
+##### 213. 打家劫舍II
 
 Leetcode198.的简单变体
 
@@ -335,5 +355,295 @@ func max(a int , b int) int {
     }
     return b
 }
+```
+
+
+
+##### 122.买卖股票的最佳时机 I
+
+
+
+
+
+>  声明：本博客性质为**学习笔记**，
+>
+> 请争议原创的耗子尾汁
+>
+> 本篇致谢[labuladong](https://labuladong.gitbook.io/algo/dong-tai-gui-hua-xi-lie/1.5-qi-ta-jing-dian-wen-ti/tuan-mie-gu-piao-wen-ti)
+
+
+
+
+
+这道题明明是简单题还讲？
+
+不就是动态规划吗？简单的。
+
+如果有人如此说，你可以这么回他：
+
+> 这是白纸和笔，你可以帮我手撕一下这道题吗？
+
+那么这个时候会有两种情况：
+
+1. 他撕不出来，你劝他好生刷题
+2. 他撕出来了，那是他真的nb
+
+
+
+聊题！聊题！
+
+###### 看状态
+
+就如我上面👆的碎碎念所述，问出问题，出现了**两种情况**
+
+也就是**一个状态两种选择**
+
+但是这道题目有点特殊
+
+涉及到**三种状态**
+
+首先，在**购买股票**时，只有三种**选择**
+
+1. 买入
+2. 卖出
+3. 不动
+
+值得注意的是，就本题而言，实际上只有**两种状态**
+
+1. 持仓
+2. 不持仓
+
+因为你**不可能先卖再买**股票，也不能**光买不卖**，以此类推
+
+
+
+其次，操作股票有**天数**
+
+最后，存在**剩余交易次数**
+
+我们可以用一个**三元组**唯一确定某天的状态
+
+```
+dp[i][k][0/1] // 天数，剩余交易次数，持仓/不持仓
+```
+
+
+
+我们最终要求的是	
+
+```
+dp[n-1][k][0]
+```
+
+也就是第n-1天，剩余交易次数k的情况下，**最大交易获利**
+
+这里（0）的意思就是**不持仓**，显然，如果**此时还持仓（1）必亏**（因为最后一天就没有交易机会了）
+
+
+
+###### 状态转移
+
+用一张图来阐明状态转移过程：
+
+![img](https://gblobscdn.gitbook.com/assets%2F-LrtQOWSnDdXhp3kYN4k%2Fsync%2F298b4971971d6e850923f64ab74792b86aa5c668.png?alt=media)
+
+图源：[labuladong的算法小抄](https://labuladong.gitbook.io/algo/dong-tai-gui-hua-xi-lie/1.5-qi-ta-jing-dian-wen-ti/tuan-mie-gu-piao-wen-ti)
+
+我们从**股票的持有是否**入手，尝试写一下dp方程
+
+先枚举讨论所有情况：
+
+1. 今天不持仓：
+   1. 昨天也不持仓，不操作
+   2. 昨天持仓，今天卖出
+2. 今天持仓：
+   1. 昨天也持仓
+   2. 昨天不持仓，今天买入
+
+
+
+根据这些情况，写出dp方程：
+
+
+$$
+\begin{cases}
+	dp[i][k][0] = max(dp[i-1][k][0],dp[i-1][k][1] + price[i])\\
+	\\
+	dp[i][k][1] = max(dp[i-1][k][1], dp[i-1][k][0] - price[i])
+\end{cases}
+$$
+
+
+###### Base case
+
+$$
+\begin{cases}
+	dp[-1][k][0] = 0\\
+	
+\\
+	dp[-1][k][1] = -\infty 
+\end{cases}
+$$
+
+我们在还未开始交易时，不持仓的收益为0
+
+并且我们不可能持仓，设此时收益为**负无穷**
+
+
+
+###### coding
+
+写出dp方程，我们还怕写不出代码？
+
+不过，实际上需要注意的是**base case 的处理**
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        //dp
+        int n = prices.size();
+        if(n==0) return 0;
+        int dp[n][2];
+
+        // base cases
+        dp[0][0] = 0;
+      	// 随便找比-price[0]小的负数即可，只要第一重循环max()
+      	// dp[1][0]返回0 dp[1][1]返回 -price[0]
+        dp[0][1] = -prices[0];
+        
+        // dp方程，从1开始
+        for(int i=1;i < n;i++) {
+            dp[i][0] = max(dp[i-1][0],dp[i-1][1]+prices[i]);
+          	// 因为k=1，因此相当于i-1天不持仓: dp[i-1][0]=0,所以
+            // dp[i][1] = max(dp[i-1][1],dp[i-1][0]-prices[i]);
+          	// 化简为：
+          	dp[i][1] = max(dp[i-1][1],-prices[i]);
+        }
+
+        return dp[n-1][0];
+    }
+};
+```
+
+与前面的dp题一样，我们可以**状态压缩**
+
+因为实际上只需要两个变量在存储状态即可
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        //dp
+        int n = prices.size();
+
+        // base cases
+        int dp_i_0 = 0;
+        int dp_i_1 = INT_MIN;//随便找个负数即可
+        
+        //dp方程
+        for(int i=0;i < n;i++) {
+            // ....状态压缩
+            dp_i_0 = max(dp_i_0, dp_i_1 + prices[i]);
+            dp_i_1 = max(dp_i_1, -prices[i]);
+        }
+
+        return dp_i_0;
+    }
+};
+```
+
+
+
+
+
+##### 买卖股票的最佳时机II
+
+ 这道题与上一题的区别，即
+
+你可以进行多次交易（多次买入，多次卖出）
+
+
+
+那么就是根据上一题的dp方程：
+$$
+\begin{cases}
+	dp[i][k][0] = max(dp[i-1][k][0],dp[i-1][k][1] + price[i])\\
+	\\
+	dp[i][k][1] = max(dp[i-1][k][1], dp[i-1][k][0] - price[i])
+\end{cases}
+$$
+因为没有限制k的次数
+
+dp方程中可以忽略 $k$
+
+轻松写出代码：
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        //dp
+        int n = prices.size();
+
+        // base cases
+        int dp_i_0 = 0;
+        int dp_i_1 = INT_MIN;//随便找个负数即可
+        
+        //dp方程
+        for(int i=0;i < n;i++) {
+            // ....状态压缩
+            int temp = dp_i_0;
+            dp_i_0 = max(dp_i_0, dp_i_1 + prices[i]);
+            dp_i_1 = max(dp_i_1, dp_i_0-prices[i]);
+        }
+        return dp_i_0;
+    }
+};
+```
+
+##### 买卖股票的最佳时机含冷冻期
+
+这道题的需求就是：
+
+卖出后，不能在第二天买入股票
+
+我们对dp方程稍作改动：
+$$
+\begin{cases}
+	dp[i][k][0] = max(dp[i-1][k][0],dp[i-1][k][1] + price[i])\\
+	\\
+	dp[i][k][1] = max(dp[i-1][k][1], dp[i-2][k][0] - price[i])
+\end{cases}
+$$
+即当持仓时，只能是
+
+1.  前一天也持仓
+2. 前两天买入
+
+因此只要对上面的代码稍作修改：
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        //dp
+        int n = prices.size();
+
+        // base cases
+        int dp_i_0 = 0;
+        int dp_i_1 = INT_MIN;//随便找个负数即可
+        int dp_pre_0 = 0; // 保存dp[i-2][0]
+        //dp方程
+        for(int i=0;i < n;i++) {
+            // ....状态压缩
+            int temp = dp_i_0;
+            dp_i_0 = max(dp_i_0, dp_i_1 + prices[i]);
+            dp_i_1 = max(dp_i_1, dp_i_0-prices[i]);
+           	dp_pre_0 = temp;
+        }
+        return dp_i_0;
+    }
+};
 ```
 
