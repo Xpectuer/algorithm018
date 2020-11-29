@@ -649,3 +649,14 @@ public:
 
 ##### [714. Best Time to Buy and Sell Stock with Transaction Fee](https://leetcode-cn.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)
 
+###### dp equation
+
+$$
+\begin{cases}
+	dp[i][k][0] = max(dp[i-1][k][0],dp[i-1][k][1] + price[i])\\
+	\\
+	dp[i][k][1] = max(dp[i-1][k][1], dp[i-1][k][0] - price[i]- fee)
+\end{cases}
+$$
+
+唯一要注意的点就是
