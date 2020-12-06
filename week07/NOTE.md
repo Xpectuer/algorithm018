@@ -529,9 +529,40 @@ public:
 
 
 
-### 双向搜索
+### 双向BFS搜索模板
+
+```python
+def bi_bfs():
+  q1 = set(start)
+  q2 = set(end)
+  q = set()
+  
+  while len(q1) and len(q2):
+    // ...
+    if len(q1) > len(q2):
+      q1, q2 = q2, q1
+    q.clear()
+    for node in q1:
+      # hit
+			if node in q1 and node in q2:
+        return
+      # process logic
+	    for connected_node in get_connected_node(node):
+      q.add(connected_node)
+      # process
+     # swap
+     q, q1 = q1, q
+```
+
+#### 八联通图坐标cheatsheet
+
+```python
+(i -1, j-1),(i-1,j),(i-1,j+1),(i,j-1),(i,j+1),(i+1,j-1),(i+1,j),(i+1,j+1)
+```
 
 
+
+#### 零钱兑换
 
 
 
