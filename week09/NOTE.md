@@ -115,3 +115,90 @@ public:
 };
 ```
 
+
+
+## 字符串算法
+
+
+
+### 大小写转换
+
+奇技淫巧
+
+```cpp
+ /* 位运算（解题区的思路
+        大写变小写、小写变大写 : 字符 ^= 32;
+        大写变小写、小写变小写 : 字符 |= 32;  
+        小写变大写、大写变大写 : 字符 &= -33;
+        eg：
+        65(A)->二进制表示为100 0001
+        32的二进制表示为 010 0000 
+        100 0001|010 0000=110 0001->97(a)
+        */
+
+        for(auto& s:str)
+            s|=32;
+        return str;
+```
+
+### 最后一个单词的长度
+
+```cpp
+class Solution {
+public:
+    int lengthOfLastWord(string s) {
+        int n = s.length()-1;
+        while(s[n]==' ') n--;
+        if(n<0) return 0;
+        // 再来一个指针
+        int start = n;
+        for(;start>=0&&s[start]!=' ';start--){}
+        return n-start;
+    }
+};
+```
+
+
+
+#### atoi
+
+```cpp
+class Solution {
+public:
+    int myAtoi(string s) {
+        if(s.length()==0) return 0;
+        int index =0,n=s.length();
+        // trim without extra space
+        while(index<n && s[index]==' ') index++;
+        cout<<"index: "<<index<<endl;
+        // sign negative or positive
+        int sign =1;//1 or -1
+        if(s[index]=='-') {
+            sign = -1;
+            index++;
+        } else if(s[index]=='+') {
+            index++;
+        }
+        // extra char
+        int end = index;
+        while(end<n&&s[end]>='0'&&s[end]<='9') end++;
+        cout<<"end: "<<end<<endl;
+        // covert
+        int total = 0;
+        // k : pos of num
+        while(index < s.length()) {
+            int digit = s[index]-'0';
+            if(digit < 0 || digit >9) break;
+            if(INT_MAX/10 < total ||
+              INT_MAX/10 == total && INT_MAX %10 <digit) 
+                return sign==1?INT_MAX:INT_MIN;
+            total = 10 * total + digit;
+            index ++;
+        }
+        return total * sign;
+        
+        
+    }
+};
+```
+
