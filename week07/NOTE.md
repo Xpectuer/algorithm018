@@ -304,7 +304,7 @@ void union(vector<int> &p, int i, int j) {
 
 ``size`` 内的元素维护每个元素的子节点个数
 
-看代码
+看代码:
 
 ```cpp
 class UF {
@@ -527,31 +527,133 @@ public:
 
 ### A*启发式搜索
 
+#### 例题
+
+#### leetcode1091. shortest-path-in-binary-matrix
+
+BFS（TLE）
+
+```cpp
+// TLE
+class Solution {
+public:
+    int shortestPathBinaryMatrix(vector<vector<int>>& grid) {
+        // bfs
+        if(grid.size()==0 || grid[0][0] || grid[grid.size()-1][grid.size()-1]) return -1;
+        if(grid.size()<=2) return grid.size();
+        
+        deque<tuple<int, int, int> > q;
+        q.push_back({0,0,1});
+        vector<pair<int, int> > mov = {{0,1},{1,0},{1,1},{-1,-1},{-1,0},{0,-1},{1,-1},{-1,1}};
+        int count=0;
+        int n = grid.size();
+        
+        while(!q.empty()) {
+                
+            auto co = q.front();
+            // reach the objective 
+            // first reach must be the closest
+            q.pop_front();
+            // 8 direction trials
+            for(auto p: mov) {
+                int new_x = get<0>(co) + p.first;
+                int new_y = get<1>(co) + p.second;
+                if(new_x >= n || new_y >= n || new_x < 0 || new_y < 0 || grid[new_x][new_y] != 0)  continue;
+                
+                if(new_x==n-1&&new_y==n-1)  return get<2>(co) + 1;    
+                q.push_back({new_x, new_y, get<2>(co)+1});
+                // visited
+                grid[get<0>(co)][get<1>(co)]== 1;    
+            }
+            
+        }
+        return -1;
+        
+        
+    }
+};
+```
 
 
-### 双向BFS搜索模板
 
-```python
-def bi_bfs():
-  q1 = set(start)
-  q2 = set(end)
-  q = set()
-  
-  while len(q1) and len(q2):
-    // ...
-    if len(q1) > len(q2):
-      q1, q2 = q2, q1
-    q.clear()
-    for node in q1:
-      # hit
-			if node in q1 and node in q2:
-        return
-      # process logic
-	    for connected_node in get_connected_node(node):
-      q.add(connected_node)
-      # process
-     # swap
-     q, q1 = q1, q
+A*：
+
+```cpp
+// passed
+int n;
+int m;
+
+// 记录（x，y）位置处最小距离是多少
+struct pos {
+    pos (int x, int y, int dis) : x(x), y(y), dis(dis){}
+    int x;
+    int y;
+    int dis;
+};
+
+// 关键：由于对角线移动 比 水平、垂直移动的距离更远而花费一样，所以以如下方法排序优先级；
+// 例如：（0,0） -> （2,5）的最优预期花费就是max(2 - 0, 5 - 0)
+bool operator< (const pos A, const pos B) {
+    return max(n - 1 - A.x, m - 1 - A.y) + A.dis - (max(n - 1 - B.x, m - 1 - B.y) + B.dis) >= 0;
+}
+
+class Solution {
+public:
+
+    int shortestPathBinaryMatrix(vector<vector<int>>& grid) {
+        if (grid.empty()) {
+            return -1;
+        }
+        n = grid.size();
+        m = grid[0].size();
+        if (grid[0][0] == 1 || grid[n - 1][m - 1] == 1) {
+            return -1;
+        }
+        if (n == 1 && m == 1) {
+            return 1;
+        }
+        priority_queue<pos> q;
+        pos start(0, 0, 1);
+        q.push(start);
+        // 拥塞路径加入closeList
+        vector<bool> closeList(n * m, false);
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                if (grid[i][j] == 1) {
+                    closeList[i * m + j] = true;
+                }
+            }
+        }
+        // 不需要记录父节点，故openList只保存最小花费
+        vector<int> openList(n * m, 0);
+        openList[0] = 1;
+        // 八个移动方向
+        vector<vector<int>> mov {{1, 1}, {1, 0}, {0, 1}, {-1, 1}, {1, -1}, {-1, 0}, {0, -1}, {-1, -1}};
+        while (!q.empty()) {
+            pos cur = q.top();
+            q.pop();
+            int curIdx = cur.x * m + cur.y;
+            closeList[curIdx] = true;
+            for (int k = 0; k < 8; ++k) {
+                int xx = cur.x + mov[k][0];
+                int yy = cur.y + mov[k][1];
+                int nextIdx = xx * m + yy;
+                if (0 <= xx && xx < n && 0 <= yy && yy < m && !closeList[nextIdx]) {
+                    if (xx == n - 1 && yy == m - 1) {
+                        return openList[curIdx] + 1;
+                    }
+                    // 没有到走过改点或者当前的路线更优
+                    if (openList[nextIdx] == 0 || openList[nextIdx] > openList[curIdx] + 1) {
+                        openList[nextIdx] = openList[curIdx] + 1;
+                        pos next(xx, yy, openList[curIdx] + 1);
+                        q.push(next);
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+};
 ```
 
 #### 八联通图坐标cheatsheet
@@ -560,9 +662,185 @@ def bi_bfs():
 (i -1, j-1),(i-1,j),(i-1,j+1),(i,j-1),(i,j+1),(i+1,j-1),(i+1,j),(i+1,j+1)
 ```
 
+### 双向BFS搜索模板
+
+```python
+def bi_bfs():
+  q1 = set(start)
+  q2 = set(end)
+  q = set()
+  while len(q1) and len(q2):
+    // ...
+    if len(q1) > len(q2):
+    		q1, q2 = q2, q1
+    q.clear()
+    for node in q1:
+      # hit
+			if node in q1 and node in q2:
+        	return
+      # process logic
+	    for connected_node in get_connected_node(node):
+     			q.add(connected_node)
+      # process
+     # swap
+     q, q1 = q1, q
+```
+
+#### 例题
+
+##### Word Ladder
+
+```cpp
+class Solution {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        
+        if(wordList.size()==0) return 0;
+
+        unordered_set<string> dict(wordList.begin(), wordList.end());
+        // not exist in dict
+        if(!dict.count(endWord)) return 0;
+        // bidirectional BFS
+        unordered_set<string> q1{beginWord};
+        unordered_set<string> q2{endWord};
+        int count = 0;
+        int l = beginWord.length();
+        while(!q1.empty()&&!q2.empty()) {
+            count++;
+            // swapping ensure always try the shorter one
+            if(q1.size() > q2.size()) swap(q1, q2);
+
+            unordered_set<string> q;
+            for(string w: q1) {
+                for(int i = 0; i < l; i++) {
+                    char ch = w[i];
+                    for(int j = 'a'; j <= 'z'; j++) {
+                        w[i] = j;
+                        //meet
+                        if(q2.count(w)) return count + 1;
+                        // not exist in dict
+                        if(!dict.count(w)) continue;
+                        dict.erase(w);
+                        q.insert(w);
+                    }
+                    // change the word
+                    w[i] = ch;
+                }
+            }
+            // q , q1
+            swap(q, q1);
+        }
+        return 0;
+
+    }
+};
+```
 
 
-#### 零钱兑换
+
+## AVL树与红黑树
+
+复习：
+
+1. 树的遍历
+
+```python
+def preorder(root):
+  # process
+  preorder(root.left)
+  preorder(root.right)
+  
+def inorder(root):
+  inorder(root.left)
+  # process
+  inorder(root.right)
+  
+def postorder(root):
+  postorder(root.left)
+  postorder(root.right)
+  # process
+```
+
+2. BST二叉搜索树
+
+   ```
+   1. 左子树小于根节点
+   2. 右子树大于根节点
+   3. 中序遍历 可以得到一个 升序序列
+   ```
+   
+3. BST 存在的问题
+
+   理想情况下，我们的二叉搜索树呈现一个**完全二叉树**
+
+   这样可以保持高度最低，也就是查询效率最高
+
+   然而现实与理想往往相悖，在没有处理的情况下，BST很容易变成**不平衡，甚至退化为链表**
+
+   因此，我们需要引入一个平衡方法
+
+   通常的平衡实现有（这里列出面试中较为重要的实现）：
+
+   1. [2-3Tree](https://en.wikipedia.org/wiki/2%E2%80%933_tree)
+
+   2. [AVL Tree](https://en.wikipedia.org/wiki/AVL_tree)
+
+   3. [Red-black Tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
+   4. [B Tree](https://en.wikipedia.org/wiki/B-tree#:~:text=O(log%20n)-,O(log%20n),with%20more%20than%20two%20children.)
+   5. [Splay Tree](https://en.wikipedia.org/wiki/Splay_tree)
+   6. [Treap](https://en.wikipedia.org/wiki/Treap)
 
 
 
+### AVL树
+
+1. 发明者的姓：G.M.**A**delson-**V**elsky 和 Evgenii **L**andis
+
+2. **要求相邻子树的高度差为1**
+
+3. 在看AVL树之前，引入一个重要的操作：**旋转**
+
+   看代码
+
+   ```python
+   right_rotate(node):
+     x = node.left
+   	x_r = x.right
+     x.right = node
+     node.left = x_r
+     
+   left_rotate(node):
+     y = node.right
+     y_l = y.left
+     y.left = node
+     node.right = y_l
+   ```
+
+   - AVL树**每个节点**需要保存``{-1, 0, 1}``这样的平衡因子，如果**值绝对值大于1**，则要作**平衡调整**
+     - 这一点使得AVL树相当吃内存
+   - 平衡调整（先找到最高的、因子不平衡节点）
+     - RR
+       - 左旋
+     - LL
+       - 右旋
+     - LR
+       - 左旋变成RR
+       - 右旋平衡
+     - RL
+       - 右旋变成LL
+       - 左旋平衡
+     - 这一点导致AVL树调整的次数相对较多，降低了其运行效率
+
+   传统功夫讲求一个点到为止👋，能讲清楚各个调整情况即可
+
+    
+
+### Red-Black Tree
+
+不严格要求相邻子树高度差为1
+
+用一个bit就可以存取节点状态（R/B -> 0/1）
+
+1. 每个节点到达**不同叶子结点**经过的**黑色节点个数**相同
+2. 相邻子树高度差不超过2倍
+3. 红节点不能与黑节点相连

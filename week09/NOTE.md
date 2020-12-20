@@ -202,3 +202,65 @@ public:
 };
 ```
 
+
+
+### 字母异位词分组
+
+1. 排序每个单词作为key，识别模式
+2. 存入map中
+   1. 已存在模式，加入已有的模式中
+   2. 对于不存在的模式，增加新模式
+
+```java
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        for(String s: strs) {
+            char [] array = s.toCharArray();
+          // 排序key
+            Arrays.sort(array);
+            String key = new String(array);
+          // 
+             List<String> list = map.getOrDefault(key, new ArrayList<String>());
+            list.add(s);
+            map.put(key, list);
+        }
+        return new ArrayList<List<String>>(map.values());
+    }
+}
+```
+
+![「动态规划」问题思考方向.png](/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/CSDN/blogs/Algo/1f95da43d1bdeebdd1213bb804034ddc5f906dc61451cd63f2b5ab5d0eb33b33-「动态规划」问题思考方向.png)
+
+### 最大回文子串
+
+```java
+// 中心向外扩展
+//O(N+N-1)
+public class Solution {
+private int lo, maxLen;
+
+public String longestPalindrome(String s) {
+	int len = s.length();
+	if (len < 2)
+		return s;
+	
+    for (int i = 0; i < len-1; i++) {
+     	extendPalindrome(s, i, i);  //assume odd length, try to extend Palindrome as possible
+     	extendPalindrome(s, i, i+1); //assume even length.
+    }
+    return s.substring(lo, lo + maxLen);
+}
+
+private void extendPalindrome(String s, int j, int k) {
+	while (j >= 0 && k < s.length() && s.charAt(j) == s.charAt(k)) {
+		j--;
+		k++;
+	}
+	if (maxLen < k - j - 1) {
+		lo = j + 1;
+		maxLen = k - j - 1;
+	}
+}}
+```
+
